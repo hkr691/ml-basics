@@ -1,8 +1,10 @@
 from typing import List
+import copy
 
 class InMemoryDB:
   def __init__(self):
     self.db = {}
+    self.backups = {}
   
   def _expire_if_needed(self, ts: int, key: str, field: str):
     if key in self.db and field in self.db[key]:
@@ -13,6 +15,13 @@ class InMemoryDB:
           del self.db[key]
         return True
     return False
+   
+  def _sweep_all_expired(self, ts: int):
+    keys = list(self.db.keys())
+    for key in keys:
+      fields = list(self.db[key].keys())
+      for field in fields:
+        self._expire_if_needed(ts, key, field)         
   
   def set(self, ts: int, key: str, field: str, value: int):
     if key not in self.db:
@@ -31,9 +40,9 @@ class InMemoryDB:
     if key not in self.db or field not in self.db[key]:
       return False
     
-    current_value = self.db[key][field][0]
+    current_value, expire_at = self.db[key][field]
     if current_value == expected_value:
-      self.db[key][field] = (new_value, float('inf'))
+      self.db[key][field] = (new_value, expire_at)
       return True
     return False
   
@@ -78,3 +87,15 @@ class InMemoryDB:
     valid_fields = [field for field in self.db[key].keys() if field.startswith(prefix)]
     sorted_fields = sorted(valid_fields)
     return [f"{field}({self.db[key][field][0]})" for field in sorted_fields]
+
+  def backup(self, ts: int):
+    self._sweep_all_expired(ts)
+    self.backups[ts] = copy.deepcopy(self.db)
+    return len(self.backups[ts])
+  
+  def restore(self, ts: int, ts_to_restore: int):
+    if ts_to_restore not in self.backups:
+      return False
+    self.db = copy.deepcopy(self.backups[ts_to_restore])
+    self._sweep_all_expired(ts)
+    return True
