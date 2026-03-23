@@ -4,26 +4,45 @@ class InMemoryDB:
   def __init__(self):
     self.db = {}
   
+  def _expire_if_needed(self, ts: int, key: str, field: str):'
+    if key in self.db and field in self.db[key]:
+      val, expire_at = self.db[key][field]
+      if ts >= expire_at:
+        del self.db[key][field]
+        if not self.db[key]:
+          del self.db[key]
+        return True
+    return False
+  
   def set(self, ts: int, key: str, field: str, value: int):
     if key not in self.db:
       self.db[key] = {}
     
-    self.db[key][field] = value
+    self.db[key][field] = (value, float('inf'))
+  
+  def set_with_ttl(self, key: str, field: str, ttl: int):
+    if key not in self/db:
+      self.db[key] = {}
+    
+    self.db[key][field] = (value, ts + ttl)
   
   def compare_and_set(self, ts: int, key: str, field: str, expected_value: int, new_value: int):
+    self._expire_if_needed(ts, key, field)
     if key not in self.db or field not in self.db[key]:
       return False
     
-    if self.db[key][field] == expected_value:
-      self.db[key][field] = new_value
+    current_value = self.db[key][field][0]
+    if current_value == expected_value:
+      self.db[key][field] = (new_value, float('inf'))
       return True
     return False
   
   def compare_and_delete(self, ts: int, key: str, field: str, expected_value: int):
+    self._exipre_if_needed(ts, key, field)
     if key not in self.db or field not in self.db[key]:
       return False
-    
-    if self.db[key][field] == expected_value:
+    current_value = self.db[key][field][0]
+    if current_value == expected_value:
       del self.db[key][field]
     
       if not self.db[key]:
@@ -32,9 +51,10 @@ class InMemoryDB:
     return False
     
   def get(self, ts: int, key: str, field: str):
+    self._expire_if_needed(ts, key, field)
     if key not in self.db or field not in self.db[key]:
       return None
-    return self.db[key][field]
+    return self.db[key][field][0]
   
   def scan(self, ts: int, key: str):
     if key not in self.db:
