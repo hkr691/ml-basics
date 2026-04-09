@@ -17,4 +17,3 @@ class HappyNumber:
       x //= 10
       ret += digit ** 2
     return ret
-      
