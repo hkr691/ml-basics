@@ -20,9 +20,6 @@ class AdjacencyList:
     visited = set()
     
     def dfs_helper(node):
-      if node in visited:
-        return
-        
       visited.add(node)
       for neighbor in adj_list[node]:
         if neighbor not in visited:
