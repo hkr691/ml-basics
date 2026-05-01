@@ -1,0 +1,37 @@
+class ClimbStairs:
+  def ways_to_climb(self, n, memo=None):
+    if memo is None:
+      memo = {}
+    if n <= 1:
+      return 1
+    
+    if n in memo:
+      return memo[n]
+    
+    memo[n] = self.ways_to_climb(n - 1, memo) + self.ways_to_climb(n - 2, memo)
+    return memo[n]
+  
+  def bottom_up(self, n):
+    if n <= 1:
+      return 1
+    
+    dp = [0] * (n + 1)
+    dp[0], dp[1] = 1, 1
+    
+    for i in range(2, n + 1):
+      dp[i] = dp[i -1] + dp[i -2]
+    return dp[n]
+  
+  def bottom_up_optimized(self, n):
+    if n <= 1:
+      return 1
+    
+    prev2, prev1 = 1, 1
+    
+    for i in range(2, n+1):
+      curr = prev2 + prev1
+      prev2 = prev1
+      prev1 = curr
+    
+    return prev1
+    
