@@ -17,6 +17,11 @@ class Vector:
         return Vector([a - b for a, b in zip(self.components, other.components)])
     
     def dot(self, other):
+        """
+        dp > 0 -> similar
+        dp = 0 -> unrelated
+        dp < 0 -> dissimilar
+        """
         self._is_valid_length(other)
         return sum(a * b for a, b in zip(self.components, other.components))
     

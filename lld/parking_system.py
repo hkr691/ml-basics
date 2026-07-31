@@ -154,3 +154,5 @@ print(parkingSystem.park_vehicle(driver3))
 print(parkingSystem.remove_vehicle(driver1))
 print(parkingSystem.remove_vehicle(driver2))
 print(parkingSystem.remove_vehicle(driver3))
+
+print(driver1.balance)
